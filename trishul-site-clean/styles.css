@@ -1416,3 +1416,63 @@ body {
         box-shadow: none !important;
     }
 } 
+.hero-section {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.video-background iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #fff;
+  padding-top: 20vh;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.hero-subtitle {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #00bfff;
+  text-shadow: 0 0 10px #00bfff;
+}
+
+.hero-tagline {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.hero-buttons {
+  margin-top: 2rem;
+}
+
+.cta {
+  background-color: #00bfff;
+  border: none;
+  padding: 1rem 2rem;
+  margin: 0 1rem;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.cta.alt {
+  background-color: transparent;
+  border: 2px solid #00bfff;
+  color: #00bfff;
+}
