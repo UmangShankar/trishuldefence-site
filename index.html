@@ -411,28 +411,34 @@
         </div>
       </div>
 
-     <!-- RIGHT: Contact Form -->
-<form class="contact-form" id="contact-form" method="POST">
+<!-- RIGHT: Contact Form -->
+<form class="contact-form" id="contact-form" novalidate>
   <div class="form-group">
-    <input type="text" id="name" name="name" placeholder="Full Name" required>
+    <input type="text" id="name" name="name" placeholder="Full Name" required minlength="3">
     <label for="name">Full Name</label>
+    <span class="error-message" id="name-error"></span>
   </div>
 
   <div class="form-group">
     <input type="email" id="email" name="email" placeholder="Email Address" required>
     <label for="email">Email Address</label>
+    <span class="error-message" id="email-error"></span>
   </div>
 
   <div class="form-group">
-    <textarea id="message" name="message" placeholder="Message" rows="5" required></textarea>
+    <textarea id="message" name="message" placeholder="Message (min 10 characters)" rows="5" required minlength="10"></textarea>
     <label for="message">Message</label>
+    <span class="error-message" id="message-error"></span>
   </div>
 
   <button type="submit" class="btn btn-primary">
     <i class="fas fa-paper-plane"></i>
     Send Secure Message
   </button>
+
+  <div id="form-status" class="form-status"></div>
 </form>
+
 
 
 
