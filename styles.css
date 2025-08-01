@@ -1572,5 +1572,26 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
+/* === Form Validation Styles === */
+input.error,
+textarea.error {
+  border-color: #e53935 !important;
+  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.2);
+}
+
+.error-message {
+  color: #e53935;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  display: block;
+  font-weight: 500;
+}
+
+/* Optional: button disabled state for visual clarity */
+button[disabled] {
+  background-color: #999 !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
 
 }
