@@ -1551,4 +1551,26 @@ body {
   .social-link {
     margin: 0 8px;
   }
+    .error-message {
+  font-size: 0.8rem;
+  color: #ff4d4d;
+  margin-top: 4px;
+  display: block;
+}
+
+.form-status {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 15px;
+  color: #00D4FF;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s ease;
+}
+
+.form-status.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 }
