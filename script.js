@@ -376,158 +376,82 @@ function closeModal(modalType) {
 // ===========================
 
 function initFormHandling() {
-    const contactForm = document.getElementById('contact-form');
+  const form = document.getElementById('contact-form');
+  const submitBtn = form.querySelector('button[type="submit"]');
 
-    if (contactForm) {
-        contactForm.addEventListener('submit', handleFormSubmission);
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearAllErrors();
 
-        const inputs = contactForm.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('blur', validateField);
-            input.addEventListener('input', clearFieldError);
-        });
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const message = form.message.value.trim();
+
+    let hasError = false;
+
+    if (name.length < 3) {
+      showError('name', 'Full Name must be at least 3 characters');
+      hasError = true;
     }
-}
 
-async function handleFormSubmission(event) {
-    event.preventDefault();
-    const form = event.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
+    if (!validateEmail(email)) {
+      showError('email', 'Please enter a valid email address');
+      hasError = true;
+    }
 
-    // Disable button immediately to prevent double submissions
+    if (message.length < 10) {
+      showError('message', 'Message must be at least 10 characters');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    // Disable button while sending
     submitBtn.disabled = true;
-
-    // Validate before proceeding
-    if (!validateForm(form)) {
-        submitBtn.disabled = false;
-        return;
-    }
-
-    // Prepare form data
-    const formData = new FormData(form);
-    const payload = {
-        name: formData.get('name'),
-        email: formData.get('email'),
-        message: formData.get('message'),
-        timestamp: new Date().toISOString()
-    };
-
-    // Show loading
+    const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
     try {
-        const response = await fetch('https://sheetdb.io/api/v1/muknaes1kfnkr', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ data: [payload] })
-        });
+      const res = await fetch('https://sheetdb.io/api/v1/muknaes1kfnkr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: [{ name, email, message, timestamp: new Date().toISOString() }]
+        })
+      });
 
-        if (response.ok) {
-            showNotification('✅ Message sent successfully! We’ll contact you within 24 hours.', 'success');
-            form.reset();
-        } else {
-            showNotification('⚠️ Something went wrong. Please try again.', 'error');
-        }
-    } catch (error) {
-        showNotification('❌ Network error. Please check your connection.', 'error');
+      if (res.ok) {
+        showNotification("✅ Message sent successfully! We'll contact you soon.", 'success');
+        form.reset();
+      } else {
+        showNotification("❌ Submission failed. Please try again later.", 'error');
+      }
+    } catch (err) {
+      showNotification("❌ Network error. Please try again later.", 'error');
     }
 
     submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
-}
+    submitBtn.innerHTML = originalText;
+  });
 
-// Validate entire form
-function validateForm(form) {
-    const inputs = form.querySelectorAll('input[required], textarea[required]');
-    let isValid = true;
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
 
-    inputs.forEach(input => {
-        if (!validateField({ target: input })) {
-            isValid = false;
-        }
-    });
-
-    return isValid;
-}
-
-// Validate individual field
-function validateField(event) {
-    const field = event.target;
-    const value = field.value.trim();
-    const fieldName = field.name;
-
-    let isValid = true;
-    let errorMessage = '';
-
-    if (!value) {
-        errorMessage = `${getFieldLabel(fieldName)} is required`;
-        isValid = false;
-    } else if (fieldName === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-        errorMessage = 'Please enter a valid email address';
-        isValid = false;
-    } else if (fieldName === 'name' && value.length < 3) {
-        errorMessage = 'Full Name must be at least 3 characters';
-        isValid = false;
-    } else if (fieldName === 'message' && value.length < 10) {
-        errorMessage = 'Message must be at least 10 characters';
-        isValid = false;
-    }
-
-    if (!isValid) {
-        showFieldError(field, errorMessage);
-    } else {
-        clearFieldError({ target: field });
-    }
-
-    return isValid;
-}
-
-// Show inline error
-function showFieldError(field, message) {
+  function showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorSpan = document.getElementById(`${fieldId}-error`);
     field.classList.add('error');
-    const errorSpan = field.parentNode.querySelector('.error-message');
-    if (errorSpan) errorSpan.textContent = message;
+    errorSpan.textContent = message;
+  }
+
+  function clearAllErrors() {
+    ['name', 'email', 'message'].forEach(id => {
+      document.getElementById(id).classList.remove('error');
+      document.getElementById(`${id}-error`).textContent = '';
+    });
+  }
 }
-
-// Clear error
-function clearFieldError(event) {
-    const field = event.target;
-    field.classList.remove('error');
-    const errorSpan = field.parentNode.querySelector('.error-message');
-    if (errorSpan) errorSpan.textContent = '';
-}
-
-// Map field labels
-function getFieldLabel(name) {
-    const labels = {
-        name: 'Full Name',
-        email: 'Email Address',
-        message: 'Message'
-    };
-    return labels[name] || name;
-}
-
-// Show notification (sliding)
-function showNotification(message, type) {
-    let notification = document.createElement('div');
-    notification.className = `form-notification ${type}`;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-    setTimeout(() => notification.classList.add('show'), 100);
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 500);
-    }, 5000);
-}
-
-// Call on page load
-document.addEventListener('DOMContentLoaded', initFormHandling);
-
 
 // ===========================
 // NOTIFICATION SYSTEM
