@@ -398,7 +398,9 @@ function handleFormSubmission(event) {
     const data = Object.fromEntries(formData);
     
     // Validate all fields
-    if (validateForm(form)) {
+    if (!validateForm(form)) {
+    return; // Prevent submission if validation fails
+}
         // Show loading state
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
