@@ -432,7 +432,7 @@ function validateForm(form) {
     let isValid = true;
     
     inputs.forEach(input => {
-        if (!validateField({ target: input })) {
+        if (!validateField(input)) {
             isValid = false;
         }
     });
@@ -441,7 +441,7 @@ function validateForm(form) {
 }
 
 function validateField(event) {
-    const field = event.target;
+    const field = event.target || event;
     const value = field.value.trim();
     const fieldType = field.type;
     const fieldName = field.name;
