@@ -378,6 +378,7 @@ function closeModal(modalType) {
 function initFormHandling() {
   const form = document.getElementById('contact-form');
   const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnHTML = submitBtn.innerHTML;
 
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -406,10 +407,10 @@ function initFormHandling() {
 
     if (hasError) return;
 
-    // Disable button while sending
+    // Visually disable button
     submitBtn.disabled = true;
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    submitBtn.classList.add('disabled'); // optional: add CSS class
+    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sending...`;
 
     try {
       const res = await fetch('https://sheetdb.io/api/v1/muknaes1kfnkr', {
@@ -430,8 +431,10 @@ function initFormHandling() {
       showNotification("❌ Network error. Please try again later.", 'error');
     }
 
+    // Re-enable button
     submitBtn.disabled = false;
-    submitBtn.innerHTML = originalText;
+    submitBtn.classList.remove('disabled');
+    submitBtn.innerHTML = originalBtnHTML;
   });
 
   function validateEmail(email) {
