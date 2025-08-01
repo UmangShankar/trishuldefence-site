@@ -372,16 +372,15 @@ function closeModal(modalType) {
 }
 
 // ===========================
-// FORM HANDLING
+// FORM HANDLING (Revised)
 // ===========================
 
 function initFormHandling() {
     const contactForm = document.getElementById('contact-form');
-    
+
     if (contactForm) {
         contactForm.addEventListener('submit', handleFormSubmission);
-        
-        // Enhanced form validation
+
         const inputs = contactForm.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             input.addEventListener('blur', validateField);
@@ -390,171 +389,145 @@ function initFormHandling() {
     }
 }
 
-function handleFormSubmission(event) {
+async function handleFormSubmission(event) {
     event.preventDefault();
-    
     const form = event.target;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData);
-    
-    // Validate all fields
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    // Disable button immediately to prevent double submissions
+    submitBtn.disabled = true;
+
+    // Validate before proceeding
     if (!validateForm(form)) {
-    return; // Prevent submission if validation fails
-}
-        // Show loading state
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        submitBtn.disabled = true;
-        
-        // Simulate form submission (replace with actual API call)
-        setTimeout(() => {
-            // Success feedback
-            showNotification('Message sent successfully! We\'ll contact you within 24 hours.', 'success');
-            form.reset();
-            
-            // Reset button
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            
-            // Clear floating labels
-            const labels = form.querySelectorAll('label');
-            labels.forEach(label => {
-                label.style.transform = '';
-                label.style.fontSize = '';
-                label.style.color = '';
-            });
-            
-        }, 2000);
+        submitBtn.disabled = false;
+        return;
     }
+
+    // Prepare form data
+    const formData = new FormData(form);
+    const payload = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        message: formData.get('message'),
+        timestamp: new Date().toISOString()
+    };
+
+    // Show loading
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+    try {
+        const response = await fetch('https://sheetdb.io/api/v1/muknaes1kfnkr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: [payload] })
+        });
+
+        if (response.ok) {
+            showNotification('✅ Message sent successfully! We’ll contact you within 24 hours.', 'success');
+            form.reset();
+        } else {
+            showNotification('⚠️ Something went wrong. Please try again.', 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Network error. Please check your connection.', 'error');
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnText;
 }
 
+// Validate entire form
 function validateForm(form) {
     const inputs = form.querySelectorAll('input[required], textarea[required]');
     let isValid = true;
-    
+
     inputs.forEach(input => {
-        if (!validateField(input)) {
+        if (!validateField({ target: input })) {
             isValid = false;
         }
     });
-    
+
     return isValid;
 }
 
+// Validate individual field
 function validateField(event) {
-    const field = event.target || event;
+    const field = event.target;
     const value = field.value.trim();
-    const fieldType = field.type;
     const fieldName = field.name;
-    
-    // Remove existing error styling
-    field.classList.remove('error');
-    removeFieldError(field);
-    
+
     let isValid = true;
     let errorMessage = '';
-    
-    // Required field validation
-    if (field.hasAttribute('required') && !value) {
-        isValid = false;
+
+    if (!value) {
         errorMessage = `${getFieldLabel(fieldName)} is required`;
+        isValid = false;
+    } else if (fieldName === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        errorMessage = 'Please enter a valid email address';
+        isValid = false;
+    } else if (fieldName === 'name' && value.length < 3) {
+        errorMessage = 'Full Name must be at least 3 characters';
+        isValid = false;
+    } else if (fieldName === 'message' && value.length < 10) {
+        errorMessage = 'Message must be at least 10 characters';
+        isValid = false;
     }
-    
-    // Email validation
-    if (fieldType === 'email' && value) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) {
-            isValid = false;
-            errorMessage = 'Please enter a valid email address';
-        }
-    }
-    
-    // Name validation
-    if (fieldName === 'name' && value) {
-        if (value.length < 2) {
-            isValid = false;
-            errorMessage = 'Name must be at least 2 characters long';
-        }
-    }
-    
-    // Organization validation
-    if (fieldName === 'organization' && value) {
-        if (value.length < 2) {
-            isValid = false;
-            errorMessage = 'Organization name must be at least 2 characters long';
-        }
-    }
-    
-    // Message validation
-    if (fieldName === 'message' && value) {
-        if (value.length < 10) {
-            isValid = false;
-            errorMessage = 'Message must be at least 10 characters long';
-        }
-    }
-    
+
     if (!isValid) {
         showFieldError(field, errorMessage);
+    } else {
+        clearFieldError({ target: field });
     }
-    
+
     return isValid;
 }
 
+// Show inline error
 function showFieldError(field, message) {
     field.classList.add('error');
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error';
-    errorDiv.textContent = message;
-    
-    field.parentNode.appendChild(errorDiv);
-    
-    // Add error styling to CSS if not present
-    if (!document.querySelector('#error-styles')) {
-        const style = document.createElement('style');
-        style.id = 'error-styles';
-        style.textContent = `
-            .form-group input.error,
-            .form-group textarea.error {
-                border-color: #ff4444 !important;
-                box-shadow: 0 0 10px rgba(255, 68, 68, 0.2) !important;
-            }
-            .field-error {
-                color: #ff4444;
-                font-size: 0.8rem;
-                margin-top: 0.5rem;
-                padding-left: 1rem;
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    const errorSpan = field.parentNode.querySelector('.error-message');
+    if (errorSpan) errorSpan.textContent = message;
 }
 
-function removeFieldError(field) {
-    const errorDiv = field.parentNode.querySelector('.field-error');
-    if (errorDiv) {
-        errorDiv.remove();
-    }
-}
-
+// Clear error
 function clearFieldError(event) {
     const field = event.target;
-    if (field.classList.contains('error')) {
-        field.classList.remove('error');
-        removeFieldError(field);
-    }
+    field.classList.remove('error');
+    const errorSpan = field.parentNode.querySelector('.error-message');
+    if (errorSpan) errorSpan.textContent = '';
 }
 
-function getFieldLabel(fieldName) {
+// Map field labels
+function getFieldLabel(name) {
     const labels = {
-        'name': 'Full Name',
-        'organization': 'Organization',
-        'email': 'Email Address',
-        'message': 'Message'
+        name: 'Full Name',
+        email: 'Email Address',
+        message: 'Message'
     };
-    return labels[fieldName] || fieldName;
+    return labels[name] || name;
 }
+
+// Show notification (sliding)
+function showNotification(message, type) {
+    let notification = document.createElement('div');
+    notification.className = `form-notification ${type}`;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 500);
+    }, 5000);
+}
+
+// Call on page load
+document.addEventListener('DOMContentLoaded', initFormHandling);
+
 
 // ===========================
 // NOTIFICATION SYSTEM
