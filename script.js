@@ -540,14 +540,12 @@ function showNotification(message, type = 'info') {
 // ===========================
 
 function downloadConcept() {
-    // Simulate concept note download
-    showNotification('Concept note download initiated. Please check your downloads folder.', 'success');
-    
-    // In a real implementation, you would trigger an actual file download
-    // const link = document.createElement('a');
-    // link.href = './assets/Trishul_Concept_Note.pdf';
-    // link.download = 'Trishul_Advanced_Systems_Concept_Note.pdf';
-    // link.click();
+  const link = document.createElement('a');
+  link.href = './assets/Trishul_Concept_Note_1.pdf';
+  link.download = 'Trishul_Advanced_Systems_Concept_Note.pdf';
+  link.click();
+
+  showNotification('📄 Concept note download started.', 'success');
 }
 
 // ===========================
